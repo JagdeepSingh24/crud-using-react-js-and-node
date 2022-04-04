@@ -5,6 +5,7 @@ import axios from 'axios'
 import Popup from 'reactjs-popup';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { image } from 'fontawesome';
 const Dashboard = () => {
   
   const [openEdit, setOpenEdit] = useState(false);
@@ -19,23 +20,35 @@ const Dashboard = () => {
   const [account_type, setAccount_type] = useState("")
   const [newpassword, setNewpassword] = useState("")
   const [data, setData] = useState([]);
-
+  const [openFile, setOpenFile] = useState(false);
+  const [pic, setPic] = useState("");
+    const [imageFile, setImageFile] = useState({
+        "image":""
+    });
+    let formData = new FormData(); 
   useEffect(() => {
     check()
   }, [])
+  // useEffect(() => {
+  //   check()
+  // }, [uploadfile])
   const check = () => {
 
     axios.post(`http://localhost:3000/manageuser`, {
       email: localStorage.getItem('email')
     })
       .then(async (response) => {
-
+        console.log("while checking",response.data);
         setFname(response.data[0].fname);
         setEmail(response.data[0].email);
         setId(response.data[0].Id);
         setAccount_type(response.data[0].account_type);
-
-
+        let v1 = "http://localhost:3000/";
+        let v2 = v1.concat(response.data[0].image);
+        console.log("v2", v2);
+        setPic(v2);
+        console.log("Image.............",response.data[0].image);
+        // console.log(">>>>>>>>>>",id)
       })
       .catch(function (error) {
         console.log(error);
@@ -271,22 +284,67 @@ const Dashboard = () => {
 
   }
 
+  const uploadfile = async () => {
+        
+    console.log("::::::::::::::::::: in uploadfile",imageFile.image);
+    console.log("in uploadFile", imageFile.image.name);
+    formData.append("image", imageFile.image, imageFile.image.name);
+    
+    axios.put(`http://localhost:3000/image/${id}`,formData,{headers: {
+        'Content-Type': 'multipart/form-data'
+      }})
+    .then(async (response) => {
+        console.log(response);
+        setOpenFile(false)
+        check()
+    })
+    .catch(function (error) {
+        console.log(error);
+    });
+}
+const changeHandler=(event)=>{
+    console.log(event.target.files[0]);
+    console.log(event.target.files);
+    console.log(event.target.files[0].name);
+    console.log(event.target);
+    setImageFile( prev => ({
+        ...prev,
+        image: event.target.files[0]
+      }));
+      console.log(":::::::::::::::::::",imageFile.image);
+}
+
+
   return (
 
     <div>
       <div>
         <div className='text-center h1'>Your profile</div>
+        <div className='row'>
+        <div className="col-sm-6">
         <div>
           <h1>Name :</h1><h5>{fname}</h5></div>
         <div><h1>Email :</h1><h5>{email}</h5></div>
-        <div><h1>Account type:</h1><h5>{account_type}</h5></div><br></br><br></br>
+        <div><h1>Account type:</h1><h5>{account_type}</h5></div>
+        </div>
+        <div className='col-sm-6'>
+          {/* <h1>{pic}</h1> */}
+          <div ><img src={pic} alt="Profile Pic" width="200" height="200"></img></div> 
+        </div>
+        </div>
+        
+        <br></br><br></br>
         <div>
           <button className="btn btm-sm btn-primary"
             onClick={() => {
               Edit(id);
               setOpenEdit(true);
             }}>Edit</button><br></br><br></br>
-          <button className="btn btm-sm btn-primary" onClick={() => { cpassword(id); }}>change password</button>
+          <button className="btn btm-sm btn-primary" onClick={() => { cpassword(id); }}>change password</button><br></br><br></br>
+          <td><button className="btn btm-sm btn-primary"
+                                onClick={() => {
+                                    setOpenFile(true);
+                                }}>Update Profile Pic</button></td>
         </div>
 
       </div>
@@ -378,6 +436,28 @@ const Dashboard = () => {
         </div>
       </Popup>
 
+      <Popup open={openFile} onClose={() => {
+                setOpenFile(false)
+            }}>
+                <div className='bg-info mx-5 text-center'>
+                    <form>
+                        <div className='text-center'>
+                            <h1>Update your profile pic</h1><br></br>
+                        </div>
+                        <div>
+                            <input type="hidden" id="id" value={id} name="id"></input>
+                            <input type="file" accept="image/*" id="file" name="file" /* value={imageFile} */ className=" form-label h5  mx-5" onChange={changeHandler} ></input>
+
+                        </div>
+
+                        <div><br></br>
+                            <button type="button" className='button-success mx-5' onClick={() => { uploadfile(); setOpenFile(false);}}>Submit</button>
+                            <button type="button" className='button-danger mx-5' onClick={() => { setOpenFile(false) }}>Close</button>
+                        </div>
+                    </form>
+
+                </div>
+            </Popup>
       <ToastContainer
         position="bottom-center"
         autoClose={1000}

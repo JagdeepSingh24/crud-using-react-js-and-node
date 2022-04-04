@@ -9,6 +9,7 @@ import Popup from 'reactjs-popup';
 import { memo } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import FormData from 'form-data';
 const Manageuser = () => {
     const [data, setData] = useState([]);
     const [openEdit, setOpenEdit] = useState(false);
@@ -27,6 +28,11 @@ const Manageuser = () => {
     const ITEMS_PER_PAGE = 4;
     const [search, setSearch] = useState("");
     const [sorting, setSorting] = useState({ field: "", order: "" });
+    const [openFile, setOpenFile] = useState(false);
+    const [imageFile, setImageFile] = useState({
+        "image": ""
+    });
+    let formData = new FormData();
     useEffect(() => {
         get();
     }, []);
@@ -260,10 +266,43 @@ const Manageuser = () => {
         }
     }
 
+    
+    const uploadfile = async () => {
+
+        console.log("::::::::::::::::::: in uploadfile", imageFile.image);
+        console.log("in uploadFile", imageFile.image.name);
+        formData.append("image", imageFile.image, imageFile.image.name);
+
+        axios.put(`http://localhost:3000/image/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+            .then(async (response) => {
+                console.log(response);
+                setOpenFile(false)
+                get();
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+    const changeHandler = (event) => {
+        console.log(event.target.files[0]);
+        console.log(event.target.files);
+        console.log(event.target.files[0].name);
+        console.log(event.target);
+        setImageFile(prev => ({
+            ...prev,
+            image: event.target.files[0]
+        }));
+        console.log(":::::::::::::::::::", imageFile.image);
+    }
     const headers = [
         { name: "Name", field: "fname", sortable: true },
         { name: "Email", field: "email", sortable: true },
-        { name: "Account type", field: "account_type", sortable: false }
+        { name: "Account type", field: "account_type", sortable: false },
+        {name: "Image" ,field:"image", sortable: false}
     ];
     const commentsData = useMemo(() => {
         let computedData = data;
@@ -290,7 +329,7 @@ const Manageuser = () => {
             (currentPage - 1) * ITEMS_PER_PAGE,
             (currentPage - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE
         )
-    }, [currentPage, data, search,sorting])
+    }, [currentPage, data, search, sorting])
 
     return (
         <div>
@@ -313,8 +352,8 @@ const Manageuser = () => {
                 </div>
             </div>
             <table className='table  table-hover table-bordered text-center'>
-                
-                <TableHeader 
+
+                <TableHeader
                     headers={headers}
                     onSorting={(field, order) =>
                         setSorting({ field, order })
@@ -329,6 +368,7 @@ const Manageuser = () => {
                             <td className='text-white'>{data.fname}</td>
                             <td className='text-white'>{data.email}</td>
                             <td className='text-white'>{data.account_type}</td>
+                            <td className='text-white'><img src={`http://localhost:3000/${data.image}`} alt="profile pic" width="100" height="100"></img></td>
                             <td><button className="btn btm-sm btn-danger"
                                 onClick={() => {
                                     onDelete(data.Id);
@@ -338,7 +378,15 @@ const Manageuser = () => {
                                     Edit(data.Id);
                                     setOpenEdit(true);
                                 }}>Edit</button></td>
-                            <td><button className="btn btm-sm btn-primary" onClick={() => { cpassword(data.Id); }}>change password</button></td></tr>
+                            <td><button className="btn btm-sm btn-primary"
+                                onClick={() => {
+                                    cpassword(data.Id);
+                                }}>change password</button></td>
+                            <td><button className="btn btm-sm btn-primary"
+                                onClick={() => {
+                                    setId(data.Id);
+                                    setOpenFile(true);
+                                }}>Photo upload</button></td></tr>
                     })}
 
                 </tbody>
@@ -433,6 +481,29 @@ const Manageuser = () => {
                         }} className="btn btn-sn btn-success mb-3  mx-5">Submit</button>
                         <button className="btn btn-sn btn-danger mb-3 mx-5" onClick={() => { setOpenChange(false) }}>close</button>
                     </div>
+                </div>
+            </Popup>
+
+            <Popup open={openFile} onClose={() => {
+                setOpenFile(false)
+            }}>
+                <div className='bg-info mx-5 text-center'>
+                    <form>
+                        <div className='text-center'>
+                            <h1>Update your profile pic</h1><br></br>
+                        </div>
+                        <div>
+                            <input type="hidden" id="id" value={id} name="id"></input>
+                            <input type="file" accept="image/*" id="file" name="file" /* value={imageFile} */ className=" form-label h5  mx-5" onChange={changeHandler} ></input>
+
+                        </div>
+
+                        <div><br></br>
+                            <button type="button" className='button-success mx-5' onClick={() => { uploadfile();  }}>Submit</button>
+                            <button type="button" className='button-danger mx-5' onClick={() => { setOpenFile(false) }}>Close</button>
+                        </div>
+                    </form>
+
                 </div>
             </Popup>
 
