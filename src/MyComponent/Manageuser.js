@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import FormData from 'form-data';
 const Manageuser = () => {
     const [data, setData] = useState([]);
+    const [show, setShow] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
     const [openChange, setOpenChange] = useState(false);
     const [valid, setValid] = useState(false);
@@ -29,6 +30,7 @@ const Manageuser = () => {
     const [search, setSearch] = useState("");
     const [sorting, setSorting] = useState({ field: "", order: "" });
     const [openFile, setOpenFile] = useState(false);
+    const [imageChange, setImageChange] = useState(false);
     const [imageFile, setImageFile] = useState({
         "image": ""
     });
@@ -46,6 +48,9 @@ const Manageuser = () => {
                 setTotalItems(response.data.length);
 
             })
+            .catch(function (error) {
+                console.log(error);
+            });
     }
 
     const onDelete = async (Id) => {
@@ -59,12 +64,15 @@ const Manageuser = () => {
                         autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
-                        pauseOnHover: true,
+                        pauseOnHover: false,
                         draggable: true,
                         progress: undefined,
                     });
                     await get();
                 })
+                .catch(function (error) {
+                    console.log(error);
+                });
         }
     }
 
@@ -79,6 +87,9 @@ const Manageuser = () => {
                 setId(response.data[0].Id);
                 setAccount_type(response.data[0].account_type);
             })
+            .catch(function (error) {
+                console.log(error);
+            });
 
 
     }
@@ -119,7 +130,7 @@ const Manageuser = () => {
             error["name"] = "Please Enter name";
             isValid = false;
         } else {
-            if (!fname.match(/^[a-zA-Z]+$/)) {
+            if (!fname.match(/^[a-zA-Z]{1,}[a-zA-Z\s]+$/)) {
                 isValid = false;
                 error["name"] = "Only letters";
             }
@@ -137,11 +148,11 @@ const Manageuser = () => {
                 }
             }
         }
-
-
-
-
-        setError(error)
+        setError(prev => ({
+            ...prev,
+            email: error.email || '',
+            name: error.name || '',
+        }));
         return isValid;
     }
 
@@ -153,25 +164,37 @@ const Manageuser = () => {
             isValid = false;
         } else if (password.length < 5) {
             error["password"] = "Minimun 5 character required";
+            isValid = false;
         }
 
         if (!newpassword) {
             error["newpassword"] = "Please Enter password";
             isValid = false;
-        } else if (newpassword.length < 5) {
-            error["newpassword"] = "Minimun 5 character required";
         }
+        // else if (newpassword.length < 5) {
+        //     error["newpassword"] = "Minimun 5 character required";
+        //     isValid = false;
+        // }
 
         if (!confirmPassword) {
             error["confirmPassword"] = "Please Enter Confirm Password";
+            isValid = false;
         } else {
-            if (confirmPassword.length < 5) {
-                error["confirmPassword"] = "Minimun 5 character required";
-            } else if (confirmPassword !== password) {
+            // if (confirmPassword.length < 5) {
+            //     error["confirmPassword"] = "Minimun 5 character required";
+            //     isValid = false;
+            // } else 
+            if (confirmPassword !== password) {
                 error["confirmPassword"] = "Password and Confirm Password Do not match";
+                isValid = false;
             }
         }
-        setError(error)
+        setError(prev => ({
+            ...prev,
+            newpassword: error.newpassword || "",
+            password: error.password || "",
+            confirmPassword: error.confirmPassword || ""
+        }));
         return isValid;
     }
 
@@ -194,7 +217,7 @@ const Manageuser = () => {
                         autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
-                        pauseOnHover: true,
+                        pauseOnHover: false,
                         draggable: true,
                         progress: undefined,
                     });
@@ -207,7 +230,7 @@ const Manageuser = () => {
                         autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
-                        pauseOnHover: true,
+                        pauseOnHover: false,
                         draggable: true,
                         progress: undefined,
                     });
@@ -244,7 +267,7 @@ const Manageuser = () => {
                         autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
-                        pauseOnHover: true,
+                        pauseOnHover: false,
                         draggable: true,
                         progress: undefined,
                     });
@@ -252,12 +275,12 @@ const Manageuser = () => {
                 })
                 .catch(function (error) {
                     console.log(error);
-                    toast('Retry again. Some error occur', {
+                    toast('Wrong Password', {
                         position: "top-right",
                         autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
-                        pauseOnHover: true,
+                        pauseOnHover: false,
                         draggable: true,
                         progress: undefined,
                     });
@@ -266,32 +289,44 @@ const Manageuser = () => {
         }
     }
 
-    
+
     const uploadfile = async () => {
 
-        console.log("::::::::::::::::::: in uploadfile", imageFile.image);
-        console.log("in uploadFile", imageFile.image.name);
-        formData.append("image", imageFile.image, imageFile.image.name);
-
-        axios.put(`http://localhost:3000/image/${id}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        })
-            .then(async (response) => {
-                console.log(response);
-                setOpenFile(false)
-                get();
+        // console.log("::::::::::::::::::: in uploadfile", imageFile.image);
+        // console.log("in uploadFile", imageFile.image.name);
+        
+        if (imageChange) {
+            formData.append("image", imageFile.image, imageFile.image.name);
+            axios.put(`http://localhost:3000/image/${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
             })
-            .catch(function (error) {
-                console.log(error);
-            });
+                .then(async (response) => {
+                    console.log(response);
+                    setOpenFile(false)
+                    setImageChange(false)
+                    get();
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }else{
+            setShow(true);
+        }
     }
     const changeHandler = (event) => {
+        setShow(false);
         console.log(event.target.files[0]);
         console.log(event.target.files);
         console.log(event.target.files[0].name);
+        const image = event.target.files[0];
+        if (!image) {
+            console.log('image is required');
+            // return false;
+        }
         console.log(event.target);
+        setImageChange(true);
         setImageFile(prev => ({
             ...prev,
             image: event.target.files[0]
@@ -302,7 +337,9 @@ const Manageuser = () => {
         { name: "Name", field: "fname", sortable: true },
         { name: "Email", field: "email", sortable: true },
         { name: "Account type", field: "account_type", sortable: false },
-        {name: "Image" ,field:"image", sortable: false}
+        { name: "Status", field: "verified", sortable: false },
+        { name: "Image", field: "image", sortable: false },
+
     ];
     const commentsData = useMemo(() => {
         let computedData = data;
@@ -332,7 +369,7 @@ const Manageuser = () => {
     }, [currentPage, data, search, sorting])
 
     return (
-        <div>
+        <div >
             <div className="row">
                 <div className="col-md-6">
                     <Pagination
@@ -368,6 +405,7 @@ const Manageuser = () => {
                             <td className='text-white'>{data.fname}</td>
                             <td className='text-white'>{data.email}</td>
                             <td className='text-white'>{data.account_type}</td>
+                            <td className='text-white'>{data.verified}</td>
                             <td className='text-white'><img src={`http://localhost:3000/${data.image}`} alt="profile pic" width="100" height="100"></img></td>
                             <td><button className="btn btm-sm btn-danger"
                                 onClick={() => {
@@ -406,33 +444,33 @@ const Manageuser = () => {
                     <div className="form-label h1 text-center mt-5 pt-5 px-5 " > Edit Data </div>
                     <div className="content">
                         <form >
-                            <div className="mb-3">
+                            <div className="mb-3 text-center">
                                 <input type="hidden" id="id" value={id} name="id"></input>
                                 <label htmlFor="fname" className="form-label h2 text-center mx-5">Name</label><br></br>
                                 <input type="text" className=" form-label h5 text-center mx-5" id="fname" value={fname} onChange={(e) => { setFname(e.target.value) }} name="fname"></input><br></br>
                                 {valid
-                                    && <span style={{ color: "red" }}>{error.name}</span>}
+                                    && <span className=" form-label h5  mx-5" style={{ color: "red" }}>{error.name}</span>}
                             </div>
-                            <div className="mb-3">
+                            <div className="mb-3 text-center">
                                 <label htmlFor="email" className="form-label h2 text-center mx-5">Email</label><br></br>
                                 <input type="text" className=" form-label h5 text-center mx-5" value={email} id="email" onChange={(e) => { setEmail(e.target.value) }} name="email"></input><br></br>
                                 {valid
-                                    && <span style={{ color: "red" }}>{error.email}</span>}
+                                    && <span className=" form-label h5  mx-5" style={{ color: "red" }}>{error.email}</span>}
                             </div>
 
-                            <div className="mb-3">
-                                <input type="radio" className=" form-label h3 text-center mx-5" id="user" name="account_type" value="user" onChange={(e) => { setAccount_type(e.target.value) }}  ></input>
+                            <div className="mb-3 text-center">
+                                <input type="radio" className=" form-label h1 text-center mx-5" id="user" name="account_type" value="user" checked={account_type === "user"} onChange={(e) => { setAccount_type(e.target.value) }}  ></input>
                                 <label htmlFor="user" className="form-label h2 text-center mx-3">User</label>
-                                <input type="radio" className=" form-label h3 text-center mx-4" id="admin" name="account_type" value="admin" onChange={(e) => { setAccount_type(e.target.value) }} ></input>
+                                <input type="radio" className=" form-label h3 text-center mx-4" id="admin" name="account_type" value="admin" checked={account_type === "admin"} onChange={(e) => { setAccount_type(e.target.value) }} ></input>
                                 <label htmlFor="admin" className="form-label h2 text-center mx-2">Admin</label>
                             </div>
                         </form>
                     </div>
                     <div className="actions text-center">
                         <button type="submit" onClick={async () => {
-                            update();
+                            await update();
                             setValid(true);
-                            setOpenEdit(false);
+                            // setOpenEdit(false);
                         }} className="btn btn-sn btn-success mx-5 h4">Submit</button>
                         <button className="btn btn-sn btn-danger mx-5 h4" onClick={() => { setOpenEdit(false) }}>close</button>
                     </div>
@@ -450,31 +488,32 @@ const Manageuser = () => {
                 <div className="wrapper bg-info  text-white   ">
                     <div className="form-label h1 text-center pt-5 px-5" > Change Password </div>
                     <div className="frame">
+                        {/* <h2><div>{JSON.stringify(error)}</div></h2> */}
                         <form >
                             <input type="hidden" id="id" value={id} name="id"></input><br></br>
-                            <div >
+                            <div className='text-center'>
                                 <label htmlFor="newpassword" className=" form-label h2 text-center pt-2 mx-5 mx-5" >Old Password</label><br></br>
                                 <input type="password" value={newpassword} id="newpassword" className=" form-label h5  mx-5" onChange={(e) => { setNewpassword(e.target.value) }} name="newpassword"></input><br></br>
                                 {valid
-                                    && <span style={{ color: "red" }}>{error.newpassword}</span>}
+                                    && <span className=" form-label h5  mx-5" style={{ color: "red" }}>{error.newpassword}</span>}
                             </div>
-                            <div>
+                            <div className='text-center'>
                                 <label htmlFor="password" className="form-label h2 text-center pt-2 mx-5 mx-5" >New Password</label><br></br>
                                 <input type="password" value={password} id="password" className=" form-label h5  mx-5" onChange={(e) => { setPassword(e.target.value) }} name="password"></input><br></br>
                                 {valid
-                                    && <span style={{ color: "red" }}>{error.password}</span>}
+                                    && <span className=" form-label h5  mx-5" style={{ color: "red" }}>{error.password}</span>}
                             </div>
 
-                            <div>
+                            <div className='text-center'>
                                 <label htmlFor="confirmPassword" className="form-label h2 text-center pt-2 mx-5 mx-5">Confirm Password</label><br></br>
                                 <input type="password" value={confirmPassword} id="confirmPassword" className=" form-label h5  mx-5" onChange={(e) => { setConfirmPassword(e.target.value) }} name="confirmPassword"></input><br></br>
                                 {valid
-                                    && <span style={{ color: "red" }}>{error.confirmPassword}</span>}<br></br><br></br>
+                                    && <span className=" form-label h5  mx-5" style={{ color: "red" }}>{error.confirmPassword}</span>}<br></br><br></br>
                             </div>
 
                         </form>
                     </div>
-                    <div className="actions">
+                    <div className="actions  text-center">
                         <button type="submit" onClick={async () => {
                             await updatePassword();
                             setValid(true);
@@ -486,6 +525,8 @@ const Manageuser = () => {
 
             <Popup open={openFile} onClose={() => {
                 setOpenFile(false)
+                setImageChange(false)
+                setShow(false);
             }}>
                 <div className='bg-info mx-5 text-center'>
                     <form>
@@ -494,12 +535,13 @@ const Manageuser = () => {
                         </div>
                         <div>
                             <input type="hidden" id="id" value={id} name="id"></input>
-                            <input type="file" accept="image/*" id="file" name="file" /* value={imageFile} */ className=" form-label h5  mx-5" onChange={changeHandler} ></input>
-
+                            <input type="file" accept="image/*" id="file" name="file" /* value={imageFile} */ className=" form-label h5  mx-5" onChange={changeHandler} ></input><br></br>
+                            {show
+                                && <span style={{ color: "red" }}>Please Select one Image</span>}
                         </div>
 
                         <div><br></br>
-                            <button type="button" className='button-success mx-5' onClick={() => { uploadfile();  }}>Submit</button>
+                            <button type="button" className='button-success mx-5' onClick={() => { uploadfile(); }}>Submit</button>
                             <button type="button" className='button-danger mx-5' onClick={() => { setOpenFile(false) }}>Close</button>
                         </div>
                     </form>

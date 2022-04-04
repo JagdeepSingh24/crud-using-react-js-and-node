@@ -19,16 +19,15 @@ export const Password = () => {
             isValid = false;
         } else if (password.length < 5) {
             error["password"] = "Minimun 5 character required";
+            isValid = false;
         }
 
         if (!confirmPassword) {
             error["confirmPassword"] = "Please Enter Confirm Password";
-        } else {
-            if (confirmPassword.length < 5) {
-                error["confirmPassword"] = "Minimun 5 character required";
-            } else if (confirmPassword !== password) {
-                error["confirmPassword"] = "Password and Confirm Password Do not match";
-            }
+            isValid = false;
+        } else if (confirmPassword !== password) {
+            error["confirmPassword"] = "Password and Confirm Password Do not match";
+            isValid = false;
         }
         setError(error)
         return isValid;
@@ -110,22 +109,23 @@ export const Password = () => {
         }
     }
     return (
-        <div>
-            <form>
-                <div>
-                    <label htmlFor="password" className="form-label h2 text-center pt-2 mx-5 mx-5" >New Password</label><br></br>
+        <div >
+            <h1 className='text-center pt-2 mt-5 px-5 my-5 mx-5'>Forgot Password</h1>
+            <form className=' container text-center bg-info'>
+                <div className='text-center'>
+                    <label htmlFor="password" className=" h2 text-center pt-2 my-3 px-5 mx-5" >New Password</label><br></br>
                     <input type="password" value={password} id="password" className=" form-label h5  mx-5" onChange={(e) => { setPassword(e.target.value) }} name="password"></input><br></br>
                     {valid
                         && <span style={{ color: "red" }}>{error.password}</span>}
                 </div>
 
-                <div>
-                    <label htmlFor="confirmPassword" className="form-label h2 text-center pt-2 mx-5 mx-5">Confirm Password</label><br></br>
+                <div className='text-center'>
+                    <label htmlFor="confirmPassword" className="form-label h2 text-center pt-2 my-3 px-5 mx-5">Confirm Password</label><br></br>
                     <input type="password" value={confirmPassword} id="confirmPassword" className=" form-label h5  mx-5" onChange={(e) => { setConfirmPassword(e.target.value) }} name="confirmPassword"></input><br></br>
                     {valid
                         && <span style={{ color: "red" }}>{error.confirmPassword}</span>}<br></br><br></br>
                 </div>
-                <div className="actions">
+                <div className="actions text-center">
                     <button type="button" onClick={() => {
                         updatePassword();
                     }} className="btn btn-sn btn-success mb-3  mx-5">Submit</button>

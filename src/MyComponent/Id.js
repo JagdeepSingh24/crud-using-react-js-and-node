@@ -8,6 +8,8 @@ import Popup from 'reactjs-popup';
 export const Id = () => {
     const [forgot, setForgot] = useState(false);
     const history = useHistory();
+    const [email, setEmail] = useState("");
+    const [forgotValid, setForgotValid] = useState(false);
     const [valid, setValid] = useState(false);
     const [verify, setVerify] = useState(false);
     const [verifyToken, setVerifyToken] = useState("");
@@ -20,8 +22,8 @@ export const Id = () => {
     useEffect(() => {
         let error = {
             email: "",
-            password: ""
-
+            password: "",
+            forgotemail: ""
         }
         setError(error);
         setValid(false);
@@ -29,7 +31,8 @@ export const Id = () => {
         return () => {
             let error = {
                 email: "",
-                password: ""
+                password: "",
+                forgotemail: ""
             }
             setError(error);
             setValid(false);
@@ -38,7 +41,7 @@ export const Id = () => {
 
     useEffect(() => {
         validation();
-    }, [data.email, data.password]);
+    }, [data.email, email, data.password]);
 
     const validation = () => {
         let error = {}
@@ -58,10 +61,7 @@ export const Id = () => {
         if (!data.password) {
             isValid = false;
             error["password"] = "Please enter a password"
-        } else if (data.password.length < 5) {
-            isValid = false;
-            error["password"] = "Minimum 5 character required"
-        }
+        } 
         setError(error);
         return isValid;
 
@@ -78,6 +78,23 @@ export const Id = () => {
         });
     }
 
+    const forgotValidation = () => {
+        let error = {}
+        let isValid = true;
+        if (!email) {
+            isValid = false;
+            error["forgotemail"] = "Please enter a email"
+        } else {
+            if (typeof email !== undefined) {
+                if (!email.match(/^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/)) {
+                    isValid = false;
+                    error["forgotemail"] = "Invalid email";
+                }
+            }
+        }
+        setError(error);
+        return isValid;
+    }
     const check = (email, password) => {
         axios.post('http://localhost:3000/login', {
             email: email,
@@ -90,12 +107,12 @@ export const Id = () => {
                     console.log("in here 1=>", response)
                     setVerify(true)
                     setVerifyToken(response.data.token);
-                    
+
                 } else {
                     localStorage.setItem('email', email);
                     localStorage.setItem('token', response.data);
                     console.log("in here 2=>", response)
-                    toast('Successfully login', {
+                    toast('Successfully logged in', {
                         position: "top-right",
                         autoClose: 1000,
                         hideProgressBar: false,
@@ -136,34 +153,58 @@ export const Id = () => {
         }
     }
 
-    const forgotpassword = (email) => {
-        console.log("In forgot password");
+    const forgotpassword = (e) => {
+        e.preventDefault();
+        setForgotValid(true);
+        console.log("In forgot password", email);
+        if (forgotValidation()) {
+            axios.post("http://localhost:3000/password", {
+                email: email
+            })
+                .then(function (response) {
+                    console.log("response===>>", response);
+                    if (response.data === '401') {
+                        alert("Wrong email or password")
+                    } else {
+                        toast('Email sent', {
+                            position: "top-right",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                        });
+                        setForgot(false);
+                    }
 
-        axios.post("http://localhost:3000/password", {
-            email: email
-        })
-            .then(function (response) {
-                console.log("response===>>", response);
-                if (response.data === '401') {
-                    alert("Wrong email or password")
-                } else {
-
-                    toast('A Email is sent to your Email Id', {
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    toast('Please Enter a valid email', {
                         position: "top-right",
-                        autoClose: 1000,
+                        autoClose: 5000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: true,
                         draggable: true,
                         progress: undefined,
                     });
-                    setTimeout(() => history.push("/home"), 2000);
-                }
 
-            })
-            .catch(function (error) {
-                console.log(error);
-                toast('Please Enter a valid email', {
+                });
+        }
+    }
+
+    const funVerify = (email, verifyToken) => {
+
+        axios.post("http://localhost:3000/resend", {
+            token: verifyToken,
+            email: email
+        })
+            .then(function (response) {
+                console.log("response===>>>>>>>", response);
+                setVerify(false);
+                toast('Mail has been sent ', {
                     position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -172,42 +213,19 @@ export const Id = () => {
                     draggable: true,
                     progress: undefined,
                 });
-
+            })
+            .catch(function (error) {
+                console.log(error);
+                toast('Some Error came.Please click on verify button again', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                });
             });
-
-    }
-
-    const funVerify = (email,verifyToken) => {
-        
-        axios.post("http://localhost:3000/resend", {
-            token: verifyToken,
-            email: email
-        })
-        .then(function (response) {
-            console.log("response===>>>>>>>", response);
-            setVerify(false);
-            toast('Mail has been sent ', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
-        })
-        .catch(function (error) {
-            console.log(error);
-            toast('Some Error came.Please click on verify button again', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
-        });
     }
     return (
         <div >
@@ -233,7 +251,7 @@ export const Id = () => {
                     <button type="submit" className="btn btn-sn btn-success" onClick={() => { setValid(true); }}>log in</button><br></br><br></br>
                 </form>
                 {verify
-                    && <span>You have not Verified your account. Please click here  <button onClick={() => { funVerify(data.email,verifyToken); }} type="button">verify</button> to get a mail for verifying your account</span>}
+                    && <span>You have not Verified your account. Please click here  <button onClick={() => { funVerify(data.email, verifyToken); }} type="button">verify</button> to get a mail for verifying your account</span>}
                 <div className='actions'>
                     <button type="button" className="btn btn-sn btn-primary" onClick={() => { setForgot(true); }}>Forgot password</button><br></br>
 
@@ -246,16 +264,23 @@ export const Id = () => {
 
                 <Popup open={forgot} onClose={() => {
                     setForgot(false);
+                    setForgotValid(false);
+                    setEmail("");
                 }}>
-                    <div className="wrapper bg-primary  text-white  my-5  ">
+                    <div className="wrapper bg-primary text-center text-white  my-5  ">
                         <form>
                             <div className="form-label h1 text-center pt-5 px-5" > Forgot Password </div>
-                            <label htmlFor="email" className="form-label h2 text-center pt-5 px-5"  >Enter your Email</label><br></br>
-                            <input type="text" className='text-center mx-4 px-5' value={data.email} id="email" onChange={(e) => { fun(e.target.name, e.target.value) }} name="email"></input><br></br>
-                            {valid
-                                && <span className='form-label h2 text-center pt-5 px-5' style={{ color: "red" }}>{error.email}</span>}<br></br>
-                            <div className='border border-light p-3 mb-4 Text-center'>
-                                <button type="submit" className='btn btn-success' onClick={() => { forgotpassword(data.email); setForgot(false); }}>Submit</button><br></br><br></br>
+
+                            <div>
+                                <label htmlFor="email" className="form-label h2 text-center pt-5 px-5"  >Enter your Email</label><br></br>
+                                <input type="text" className=" form-label h5 text-center mx-5" value={email} id="email" onChange={(e) => { setEmail(e.target.value) }} name="email"></input><br></br>
+                                {/* <input type="text" className='text-center mx-4 px-5' value={email} id="email" onChange={(e) => { setEmail(e.target.value) }} name="email"></input><br></br> */}
+                                {forgotValid
+                                    && <span  style={{ color: "red" }}>{error.forgotemail}</span>}<br></br>
+                            </div>
+
+                            <div className='Text-center'>
+                                <button type="button" className='btn btn-success' onClick={(e) => { forgotpassword(e); }}>Submit</button><br></br><br></br>
                             </div>
 
 

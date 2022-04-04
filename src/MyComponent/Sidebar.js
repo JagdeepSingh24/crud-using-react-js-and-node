@@ -10,20 +10,19 @@ const Sidebar = () => {
     const history = useHistory();
     const [valid, setValid] = useState(false);
     const logout = () => {
-        localStorage.clear();
-        toast('log out', {
-            position: "top-right",
-            autoClose: 1000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
-        history.push("/auth/login");
-        // setTimeout(()=>setValid(false),3000);
-
-
+        if (window.confirm("Are you sure you want to log out")) {
+            localStorage.clear();
+            toast('Successfully logged out', {
+                position: "top-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+            history.push("/auth/login");
+        }
     }
     useEffect(() => {
         const email = localStorage.getItem('email');
@@ -61,7 +60,7 @@ const Sidebar = () => {
                 </div>
                 {valid
                     && <div className='list-group-item list-group-item-action '>
-                        <li><Link to="/manageuser">Manageuser</Link></li>
+                        <li><Link to="/manageuser">Manage User</Link></li>
                     </div>}
 
                 {valid

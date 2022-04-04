@@ -1,6 +1,8 @@
 import axios from 'axios';
 import React, { useEffect } from 'react'
 import { useHistory } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const Verified = () => {
     const queryParams = new URLSearchParams(window.location.search);
     let token = queryParams.get('token');
@@ -27,6 +29,15 @@ const Verified = () => {
           })
           .then((response) => {
             console.log(response);
+            toast('Account Verified', {
+              position: "top-right",
+              autoClose: 1000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+          });
             history.push("/auth/login");
           })
           .catch(function (error) {

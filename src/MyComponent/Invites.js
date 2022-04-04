@@ -43,7 +43,10 @@ const Invites = () => {
         return isValid;
     }
 
-    const invite = (email) => {
+    const invite = (e) => {
+        e.preventDefault();
+        setValid(true);
+        // onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
         if (validation()) {
             console.log(" in invites===>", localStorage.getItem("email"));
             console.log("in invites==>email", email);
@@ -94,14 +97,14 @@ const Invites = () => {
                 <br></br>
                 <br></br>
                 <br></br>
-                <div>
+                <div className='text-center'>
                     <label className='h3 form-label' htmlFor='email'>Enter your Email</label><br></br><br></br>
                     <input type="text" id="email" value={email} onChange={(e) => { setEmail(e.target.value) }} name="email" className='form-label'></input><br></br>
                     {valid
                         && <span style={{ color: "red" }}>{error.email}</span>}
                 </div>
                 <div>
-                    <button type="button" onClick={() => { setValid(true); invite(email) }}>Send Invite</button><br></br>
+                    <button type="submit"  onClick={(e) => { invite(e)  }}>Send Invite</button><br></br>
                 </div>
                 <br></br>
             </form>

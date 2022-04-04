@@ -34,11 +34,11 @@ const Layout = (props) => {
 
     return (
 
-        <div className='row vh-100'>
-            <div className='col-sm-4'>
+        <div className='row vh-100 w-100'>
+            <div className='col-sm-2 '>
                 <Sidebar />
             </div>
-            <div className='col-sm-8 bg-secondary text-white'>
+            <div className='col-sm-10 bg-secondary text-white'>
                 <Route path={`${props.match.path}dashboard`} >
                     <Dashboard />
                 </Route>

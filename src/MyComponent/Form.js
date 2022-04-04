@@ -57,7 +57,7 @@ export const Form = () => {
       error["name"] = "Please Enter name";
       isValid = false;
     } else {
-      if (!data.fname.match(/^[a-zA-Z]+$/)) {
+      if (!data.fname.match(/^[a-zA-Z]{1,}[a-zA-Z\s]+$/)) {
         isValid = false;
         error["name"] = "Only letters";
       }
